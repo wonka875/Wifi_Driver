@@ -17,7 +17,9 @@ jobs:
 
       - name: Download Kernel Source
         run: |
-          git clone --depth=1 -b android12-5.10 https://github.com kernel
+          URL="https://github.com"
+          REPO="/aosp-mirror/kernel_common.git"
+          git clone --depth=1 -b android12-5.10 "${URL}${REPO}" kernel
 
       - name: Configure and Build Modules
         run: |
