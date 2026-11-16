@@ -1,4 +1,4 @@
-name: Build MT7601U Modules
+name: Build MT7601U Module Only
 
 on:
   workflow_dispatch:
@@ -21,10 +21,11 @@ jobs:
           REPO="/aosp-mirror/kernel_common.git"
           git clone --depth=1 -b android12-5.10 "${URL}${REPO}" kernel
 
-      - name: Configure and Build Modules
+      - name: Patch and Build MT7601U
         run: |
           gunzip -c config.gz > kernel/.config
           cd kernel
+          sed -i 's/firmware_request_cache/request_firmware/g' drivers/net/wireless/mediatek/mt7601u/mcu.c
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
@@ -43,15 +44,13 @@ jobs:
           ./scripts/config --disable CONFIG_LOCALVERSION_AUTO
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" olddefconfig
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" modules_prepare
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" -j$(nproc) M=net/wireless modules
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" -j$(nproc) M=net/mac80211 modules
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" -j$(nproc) M=drivers/net/wireless/mediatek/mt7601u modules
           mkdir -p ../final_modules
-          cp net/wireless/cfg80211.ko net/mac80211/mac80211.ko drivers/net/wireless/mediatek/mt7601u/mt7601u.ko ../final_modules/
+          cp drivers/net/wireless/mediatek/mt7601u/mt7601u.ko ../final_modules/
           llvm-strip --strip-debug ../final_modules/*.ko
 
-      - name: Upload Built Modules
+      - name: Upload Built Module
         uses: actions/upload-artifact@v4
         with:
-          name: mt7601u-ready
-          path: final_modules/*.ko
+          name: mt7601u-fixed
+          path: final_modules/mt7601u.ko
