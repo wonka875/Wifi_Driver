@@ -29,6 +29,8 @@ jobs:
           ./scripts/config --module CONFIG_MAC80211
           ./scripts/config --module CONFIG_MT7601U
           ./scripts/config --disable CONFIG_MODVERSIONS
+          ./scripts/config --disable CONFIG_TRIM_UNUSED_KSYMS
+          ./scripts/config --set-str CONFIG_UNUSED_KSYMS_WHITELIST ""
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 olddefconfig
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 modules_prepare
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=net/wireless modules
