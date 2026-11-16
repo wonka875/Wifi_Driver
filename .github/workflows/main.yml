@@ -28,6 +28,8 @@ jobs:
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
+          ./scripts/config --enable CONFIG_WLAN
+          ./scripts/config --enable CONFIG_WLAN_VENDOR_MEDIATEK
           ./scripts/config --module CONFIG_CFG80211
           ./scripts/config --module CONFIG_MAC80211
           ./scripts/config --module CONFIG_MT7601U
@@ -39,12 +41,12 @@ jobs:
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=net/wireless modules
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=net/mac80211 modules
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=drivers/net/wireless/mediatek/mt7601u modules
+          mkdir -p ../final_modules
+          cp net/wireless/cfg80211.ko net/mac80211/mac80211.ko drivers/net/wireless/mediatek/mt7601u/mt7601u.ko ../final_modules/
+          ls -lh ../final_modules/
 
       - name: Upload Built Modules
         uses: actions/upload-artifact@v4
         with:
-          name: mt7601u-modules
-          path: |
-            kernel/net/wireless/cfg80211.ko
-            kernel/net/mac80211/mac80211.ko
-            kernel/drivers/net/wireless/mediatek/mt7601u/mt7601u.ko
+          name: mt7601u-ready
+          path: final_modules/*.ko
