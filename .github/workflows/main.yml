@@ -13,7 +13,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison build-essential ccache clang lld llvm curl flex git libssl-dev libelf-dev python3 zstd
+          sudo apt-get install -y bc bison build-essential ccache clang lld llvm binutils-aarch64-linux-gnu curl flex git libssl-dev libelf-dev python3 zstd
 
       - name: Download Kernel Source
         run: |
@@ -25,6 +25,9 @@ jobs:
         run: |
           gunzip -c config.gz > kernel/.config
           cd kernel
+          export ARCH=arm64
+          export SUBARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
           ./scripts/config --module CONFIG_CFG80211
           ./scripts/config --module CONFIG_MAC80211
           ./scripts/config --module CONFIG_MT7601U
