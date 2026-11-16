@@ -13,14 +13,11 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison build-essential ccache curl flex git libssl-dev libelf-dev python3 zstd
+          sudo apt-get install -y bc bison build-essential ccache clang lld llvm curl flex git libssl-dev libelf-dev python3 zstd
 
-      - name: Download Kernel Source & Clang
+      - name: Download Kernel Source
         run: |
-          git clone --depth=1 -b common-android12-5.10 https://googlesource.com kernel
-          mkdir -p clang && cd clang
-          curl -L https://googlesource.com -o clang.tar.gz
-          tar -xzf clang.tar.gz && rm clang.tar.gz
+          git clone --depth=1 -b android12-5.10 https://github.com kernel
 
       - name: Configure and Build Modules
         run: |
@@ -30,7 +27,6 @@ jobs:
           ./scripts/config --module CONFIG_MAC80211
           ./scripts/config --module CONFIG_MT7601U
           ./scripts/config --disable CONFIG_MODVERSIONS
-          export PATH="$GITHUB_WORKSPACE/clang/bin:$PATH"
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 olddefconfig
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 modules_prepare
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=net/wireless modules
