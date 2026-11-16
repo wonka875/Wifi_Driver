@@ -19,7 +19,7 @@ jobs:
         run: |
           URL="https://github.com"
           REPO="/aosp-mirror/kernel_common.git"
-          git clone --depth=1 -b android12-5.10-2024-09 "${URL}${REPO}" kernel || git clone --depth=1 -b android12-5.10 "${URL}${REPO}" kernel
+          git clone --depth=1 -b android12-5.10 "${URL}${REPO}" kernel
 
       - name: Configure and Build Modules
         run: |
@@ -34,18 +34,21 @@ jobs:
           ./scripts/config --module CONFIG_CFG80211
           ./scripts/config --module CONFIG_MAC80211
           ./scripts/config --module CONFIG_MT7601U
-          ./scripts/config --disable CONFIG_MODVERSIONS
-          ./scripts/config --disable CONFIG_MODULE_SIG
+          ./scripts/config --enable CONFIG_MODVERSIONS
+          ./scripts/config --enable CONFIG_CFI_CLANG
+          ./scripts/config --enable CONFIG_CFI_CLANG_SHADOW
           ./scripts/config --disable CONFIG_TRIM_UNUSED_KSYMS
           ./scripts/config --set-str CONFIG_UNUSED_KSYMS_WHITELIST ""
           ./scripts/config --set-str CONFIG_LOCALVERSION "-android12-9-3271afc57"
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 olddefconfig
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 modules_prepare
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=net/wireless modules
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=net/mac80211 modules
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc) M=drivers/net/wireless/mediatek/mt7601u modules
+          ./scripts/config --disable CONFIG_LOCALVERSION_AUTO
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" olddefconfig
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" modules_prepare
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" -j$(nproc) M=net/wireless modules
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" -j$(nproc) M=net/mac80211 modules
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 LOCALVERSION="-android12-9-3271afc57" -j$(nproc) M=drivers/net/wireless/mediatek/mt7601u modules
           mkdir -p ../final_modules
           cp net/wireless/cfg80211.ko net/mac80211/mac80211.ko drivers/net/wireless/mediatek/mt7601u/mt7601u.ko ../final_modules/
+          llvm-strip --strip-debug ../final_modules/*.ko
 
       - name: Upload Built Modules
         uses: actions/upload-artifact@v4
