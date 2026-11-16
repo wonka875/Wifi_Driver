@@ -25,7 +25,12 @@ jobs:
         run: |
           gunzip -c config.gz > kernel/.config
           cd kernel
-          sed -i 's/firmware_request_cache/request_firmware/g' drivers/net/wireless/mediatek/mt7601u/mcu.c
+          python3 -c '
+          p = "drivers/net/wireless/mediatek/mt7601u/mcu.c"
+          s = open(p).read()
+          s = s.replace("return firmware_request_cache(dev->dev, MT7601U_FIRMWARE);", "{ const struct firmware *fw; int r = request_firmware(&fw, MT7601U_FIRMWARE, dev->dev); if (!r) release_firmware(fw); return r; }")
+          open(p, "w").write(s)
+          '
           export ARCH=arm64
           export SUBARCH=arm64
           export CROSS_COMPILE=aarch64-linux-gnu-
